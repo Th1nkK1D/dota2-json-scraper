@@ -1,0 +1,13 @@
+{
+  "name": "dota2-json-scraper",
+  "version": "1.0.0",
+  "description": "Scrape Dota 2 Database into JSON",
+  "main": "index.js",
+  "repository": "https://github.com/Th1nkK1D/dota2-json-scraper.git",
+  "author": "Withee Poositasai <witheep@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "jsonfile": "^4.0.0",
+    "scrape-it": "^4.0.0"
+  }
+}
