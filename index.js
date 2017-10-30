@@ -2,6 +2,8 @@ const scrapeIt = require("scrape-it")
 const jsonfile = require('jsonfile')
 const getJSON = require('get-json')
 
+var heroFile = './json_output/heroes.json'
+
 // Get Heroes List from OpenDota
 getJSON('https://api.opendota.com/api/heroStats', function(error, response){
 
@@ -38,6 +40,12 @@ getJSON('https://api.opendota.com/api/heroStats', function(error, response){
             }
         })
 
-        console.log(heroes);
+        //console.log(heroes);
+
+        jsonfile.writeFile(heroFile, heroes, function (err) {
+            if(err) {
+                console.error(err)
+            }
+        })
     }
 })
