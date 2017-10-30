@@ -7,6 +7,7 @@
   "author": "Withee Poositasai <witheep@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "get-json": "^1.0.0",
     "jsonfile": "^4.0.0",
     "scrape-it": "^4.0.0"
   }
