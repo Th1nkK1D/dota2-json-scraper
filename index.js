@@ -99,4 +99,50 @@ function scrapeDotaBlog(heroName) {
     })
 }
 
-scrapeDotaBlog("Phoenix")
+function scrapeLiquid(heroName) {
+    let url = 'http://wiki.teamliquid.net/dota2/'+heroName.replace(' ','_');
+
+    scrapeIt(url, {
+        name: '#firstHeading',
+        lore: { 
+            selector: '#mw-content-text > p',
+            eq: 1
+        },
+        skills: {
+            listItem: '.abilitiesInsetBoxInner'
+          , data: {    
+                name: {
+                    selector: '.abilityHeaderRowDescription > h2'
+                },
+                icon: {
+                    selector: '.abilityIconHolder2 > img',
+                    attr: 'src'
+                },
+                leftAttribute: {
+                    selector: '.abilityFooterBoxLeft',
+                    convert: attr => attr.split("\n")
+                },
+                leftAttribute: {
+                    selector: '.abilityFooterBoxRight',
+                    convert: attr => attr.split("\n")
+                },
+                cooldownmana: {
+                    listItem: '.cooldownMana > div',
+                }
+            }
+        }
+    
+    }).then(page => {
+        console.log(page)
+
+        dotaBlog = page
+
+        jsonfile.writeFile(dotaBlogFile, dotaBlog, function (err) {
+            if(err) {
+                console.error(err)
+            }
+        })
+    })
+}
+
+scrapeLiquid("Phoenix")
