@@ -3,26 +3,24 @@ const jsonfile = require('jsonfile')
 const getJSON = require('get-json')
 
 var heroFile = './json_output/heroes.json'
-var dotaBlogFile = './json_output/dotaBlog.json'
 
 var heroes = {}
-var heroesList = []
-
 var counter = 0;
+var heroesNumber = 0;
 
-// Get Heroes List from OpenDota
-function fetchOpenDota() { 
+
+function getHeroes() {
+    console.log("fetching Heroes List...")
+
     getJSON('https://api.opendota.com/api/heroStats', function(error, response){
-    
         if(error) {
             console.log(error)
-        } else {
-            console.log("Gotcha")
-    
-            heroes = response.map(function(hero) {
-                return {
+        } else {    
+            response.forEach(function(hero) {                
+                 heroes[hero.localized_name] = {
                     'name': hero.localized_name,
-                    'avatar': 'https://api.opendota.com' + hero.img,
+                    'link': 'http://www.dota2.com/hero/' + hero.name.substr("npc_dota_hero_".length),
+                    'avatar': 'https://api.opendota.com/' + hero.img,
                     'attribute': hero.primary_attr,
                     'roles': hero.roles,
                     'lore': '',
@@ -43,45 +41,25 @@ function fetchOpenDota() {
                     'attackRange': hero.attack_range,
                     'attackSpeed': hero.attack_rate,
                     'skills': [],
-                    'talents': []
+                    'talents': [[null,null],[null,null],[null,null],[null,null]]
                 }
+
+                heroesNumber++
             })
     
-            //console.log(heroes);
-    
-            jsonfile.writeFile(heroFile, heroes, function (err) {
-                if(err) {
-                    console.error(err)
-                }
+            console.log("fetching each hero info...")
+
+            Object.keys(heroes).forEach((heroName) => {
+                scrapeHero(heroes[heroName])
             })
         }
     })
 }
 
-function scrapeDotaBlog() {
-    getJSON('https://api.opendota.com/api/heroes', function(error, response){
-        if(error) {
-            console.log(error)
-        } else {    
-            heroesList = response.map(function(hero) {
-                return hero.name.substr("npc_dota_hero_".length);
-                
-            })
-    
-            console.log("fetching...")
+function scrapeHero(heroObj) {
+    let hero = heroObj
 
-            heroesList.forEach((hero) => {
-                scrapeHeroDotaBlog(hero)
-            })
-        }
-    })
-}
-
-function scrapeHeroDotaBlog(name) {
-    let hero = {}
-
-    scrapeIt('http://www.dota2.com/hero/' + name, {
-        name: 'h1',
+    scrapeIt(hero.link, {
         lore: '#bioInner',
         skills: {
             listItem: '.abilitiesInsetBoxInner'
@@ -105,15 +83,13 @@ function scrapeHeroDotaBlog(name) {
             }
         }
     
-    }).then(page => {
-        //console.log(page)
-
-        hero = page
-
+    }).then(res => {
         // Clean Up
-        hero.skills = hero.skills.map((skill) => {
+        heroes[hero.name].skills = res.skills.map((skill) => {
+            // Clean right attributes
             skill.rightAttribute = skill.rightAttribute.split("\n")
 
+            // Clean left attribute
             let lastChar = ' '
 
             for(let i = 0; i < skill.leftAttribute.length; i++) {
@@ -128,14 +104,15 @@ function scrapeHeroDotaBlog(name) {
 
             skill.leftAttribute = skill.leftAttribute.split("_")
 
+            // Merge attribute
             skill.attributes = skill.cooldownmana.concat(skill.leftAttribute).concat(skill.rightAttribute)
 
+            // Delete old attribute
             delete skill.rightAttribute
             delete skill.leftAttribute
             delete skill.cooldownmana
 
-            // console.log(skill.attributes)
-
+            // Extract attribute
             skill.attributes = skill.attributes.map((attr) => {
                 attr = {
                     name: attr.substr(0,attr.indexOf(':')),
@@ -147,17 +124,19 @@ function scrapeHeroDotaBlog(name) {
             return skill
         })
 
-        // console.log(hero)
+        heroes[hero.name].lore = res.lore
 
-        heroes[hero.name] = hero
+        delete  heroes[hero.name].link
+
         counter++
         
-        console.log(name + ' done ('+counter+'/'+heroesList.length+')')
+        console.log(hero.name + ' ('+counter+'/'+heroesNumber+')')
 
-        if(counter === heroesList.length) {
+        if(counter === heroesNumber) {
             console.log("writing file...")
 
-            jsonfile.writeFile(dotaBlogFile, heroes, function (err) {
+            // Write JSON
+            jsonfile.writeFile(heroFile, heroes,{spaces: 2}, function (err) {
                 if(err) {
                     console.error(err)
                 } else {
@@ -168,4 +147,4 @@ function scrapeHeroDotaBlog(name) {
     })
 }
 
-scrapeDotaBlog()
+getHeroes()
