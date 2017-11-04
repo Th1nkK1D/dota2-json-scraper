@@ -56,7 +56,8 @@ function fetchOpenDota() {
     })
 }
 
-function scrapeDotaBlog(heroName) {
+function scrapeHeroDotaBlog(heroName) {
+    let hero = {}
     let url = 'http://www.dota2.com/hero/'+heroName.replace(' ','_').toLowerCase();
 
     scrapeIt(url, {
@@ -72,13 +73,11 @@ function scrapeDotaBlog(heroName) {
                     selector: '.abilityIconHolder2 > img',
                     attr: 'src'
                 },
-                leftAttribute: {
-                    selector: '.abilityFooterBoxLeft',
-                    convert: attr => attr.split("\n")
+                rightAttribute: {
+                    selector: 'div .abilityFooterBoxRight',
                 },
                 leftAttribute: {
-                    selector: '.abilityFooterBoxRight',
-                    convert: attr => attr.split("\n")
+                    selector: 'div .abilityFooterBoxLeft',
                 },
                 cooldownmana: {
                     listItem: '.cooldownMana > div',
@@ -87,57 +86,50 @@ function scrapeDotaBlog(heroName) {
         }
     
     }).then(page => {
-        console.log(page)
+        //console.log(page)
 
-        dotaBlog = page
+        hero = page
 
-        jsonfile.writeFile(dotaBlogFile, dotaBlog, function (err) {
-            if(err) {
-                console.error(err)
-            }
-        })
-    })
-}
+        // Clean Up
+        hero.skills = hero.skills.map((skill) => {
+            skill.rightAttribute = skill.rightAttribute.split("\n")
 
-function scrapeLiquid(heroName) {
-    let url = 'http://wiki.teamliquid.net/dota2/'+heroName.replace(' ','_');
+            let lastChar = ' '
 
-    scrapeIt(url, {
-        name: '#firstHeading',
-        lore: { 
-            selector: '#mw-content-text > p',
-            eq: 1
-        },
-        skills: {
-            listItem: '.abilitiesInsetBoxInner'
-          , data: {    
-                name: {
-                    selector: '.abilityHeaderRowDescription > h2'
-                },
-                icon: {
-                    selector: '.abilityIconHolder2 > img',
-                    attr: 'src'
-                },
-                leftAttribute: {
-                    selector: '.abilityFooterBoxLeft',
-                    convert: attr => attr.split("\n")
-                },
-                leftAttribute: {
-                    selector: '.abilityFooterBoxRight',
-                    convert: attr => attr.split("\n")
-                },
-                cooldownmana: {
-                    listItem: '.cooldownMana > div',
+            for(let i = 0; i < skill.leftAttribute.length; i++) {
+                
+                if(lastChar !== ' ' && skill.leftAttribute[i] !== ' ' && lastChar !== ',' && skill.leftAttribute[i] !== ',' && (lastChar === lastChar.toLowerCase() || parseInt(lastChar,10)) && skill.leftAttribute[i] === skill.leftAttribute[i].toUpperCase()) {
+                    skill.leftAttribute = skill.leftAttribute.substr(0,i) + "_" + skill.leftAttribute.substr(i)
+                    i++
                 }
+
+                lastChar = skill.leftAttribute[i]
             }
-        }
-    
-    }).then(page => {
-        console.log(page)
 
-        dotaBlog = page
+            skill.leftAttribute = skill.leftAttribute.split("_")
 
-        jsonfile.writeFile(dotaBlogFile, dotaBlog, function (err) {
+            skill.attributes = skill.cooldownmana.concat(skill.leftAttribute).concat(skill.rightAttribute)
+
+            delete skill.rightAttribute
+            delete skill.leftAttribute
+            delete skill.cooldownmana
+
+            console.log(skill.attributes)
+
+            skill.attributes = skill.attributes.map((attr) => {
+                attr = {
+                    name: attr.substr(0,attr.indexOf(':')),
+                    value: attr.substr(attr.indexOf(': ') + 2)
+                }
+                return attr
+            })
+
+            return skill
+        })
+
+        console.log(hero)
+
+        jsonfile.writeFile(dotaBlogFile, hero, function (err) {
             if(err) {
                 console.error(err)
             }
@@ -145,4 +137,4 @@ function scrapeLiquid(heroName) {
     })
 }
 
-scrapeLiquid("Phoenix")
+scrapeHeroDotaBlog("Windrunner")
