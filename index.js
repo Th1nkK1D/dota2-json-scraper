@@ -69,7 +69,8 @@ function scrapeHero(heroObj) {
                 },
                 icon: {
                     selector: '.abilityIconHolder2 > img',
-                    attr: 'src'
+                    attr: 'src',
+                    conv: url => url.substr(0,attr.indexOf('?')),
                 },
                 rightAttribute: {
                     selector: 'div .abilityFooterBoxRight',
@@ -105,20 +106,25 @@ function scrapeHero(heroObj) {
             skill.leftAttribute = skill.leftAttribute.split("_")
 
             // Merge attribute
-            skill.attributes = skill.cooldownmana.concat(skill.leftAttribute).concat(skill.rightAttribute)
+            let attributes = skill.cooldownmana.concat(skill.leftAttribute).concat(skill.rightAttribute)
 
             // Delete old attribute
             delete skill.rightAttribute
             delete skill.leftAttribute
             delete skill.cooldownmana
 
+            skill.attibutes = []
+
             // Extract attribute
-            skill.attributes = skill.attributes.map((attr) => {
+            attributes.forEach((attr) => {
                 attr = {
-                    name: attr.substr(0,attr.indexOf(':')),
+                    name: attr.substr(0,attr.indexOf(':')).toUpperCase(),
                     value: attr.substr(attr.indexOf(': ') + 2)
                 }
-                return attr
+                if(attr.name.length > 0 && attr.value.length > 0){
+                    skill.attibutes.push(attr)
+                }
+                
             })
 
             return skill
