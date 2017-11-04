@@ -6,7 +6,9 @@ var heroFile = './json_output/heroes.json'
 var dotaBlogFile = './json_output/dotaBlog.json'
 
 var heroes = {}
-var dotaBlog = {}
+var heroesList = []
+
+var counter = 0;
 
 // Get Heroes List from OpenDota
 function fetchOpenDota() { 
@@ -56,11 +58,29 @@ function fetchOpenDota() {
     })
 }
 
-function scrapeHeroDotaBlog(heroName) {
-    let hero = {}
-    let url = 'http://www.dota2.com/hero/'+heroName.replace(' ','_').toLowerCase();
+function scrapeDotaBlog() {
+    getJSON('https://api.opendota.com/api/heroes', function(error, response){
+        if(error) {
+            console.log(error)
+        } else {    
+            heroesList = response.map(function(hero) {
+                return hero.name.substr("npc_dota_hero_".length);
+                
+            })
+    
+            console.log("fetching...")
 
-    scrapeIt(url, {
+            heroesList.forEach((hero) => {
+                scrapeHeroDotaBlog(hero)
+            })
+        }
+    })
+}
+
+function scrapeHeroDotaBlog(name) {
+    let hero = {}
+
+    scrapeIt('http://www.dota2.com/hero/' + name, {
         name: 'h1',
         lore: '#bioInner',
         skills: {
@@ -114,7 +134,7 @@ function scrapeHeroDotaBlog(heroName) {
             delete skill.leftAttribute
             delete skill.cooldownmana
 
-            console.log(skill.attributes)
+            // console.log(skill.attributes)
 
             skill.attributes = skill.attributes.map((attr) => {
                 attr = {
@@ -127,14 +147,25 @@ function scrapeHeroDotaBlog(heroName) {
             return skill
         })
 
-        console.log(hero)
+        // console.log(hero)
 
-        jsonfile.writeFile(dotaBlogFile, hero, function (err) {
-            if(err) {
-                console.error(err)
-            }
-        })
+        heroes[hero.name] = hero
+        counter++
+        
+        console.log(name + ' done ('+counter+'/'+heroesList.length+')')
+
+        if(counter === heroesList.length) {
+            console.log("writing file...")
+
+            jsonfile.writeFile(dotaBlogFile, heroes, function (err) {
+                if(err) {
+                    console.error(err)
+                } else {
+                    console.log("completed!")
+                }
+            })
+        }
     })
 }
 
-scrapeHeroDotaBlog("Windrunner")
+scrapeDotaBlog()
