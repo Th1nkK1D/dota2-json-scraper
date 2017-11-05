@@ -10,14 +10,14 @@ var heroesNumber = 0;
 
 
 function getHeroes() {
-    console.log("fetching Heroes List...")
+    console.log("fetching basic hero info...")
 
     getJSON('https://api.opendota.com/api/heroStats', function(error, response){
         if(error) {
             console.log(error)
         } else {    
             response.forEach(function(hero) {                
-                 heroes[hero.localized_name] = {
+                 heroes[hero.localized_name.toLowerCase()] = {
                     'name': hero.localized_name,
                     'link': 'http://www.dota2.com/hero/' + hero.name.substr("npc_dota_hero_".length),
                     'avatar': 'https://api.opendota.com/' + hero.img,
@@ -46,12 +46,8 @@ function getHeroes() {
 
                 heroesNumber++
             })
-    
-            console.log("fetching each hero info...")
 
-            Object.keys(heroes).forEach((heroName) => {
-                scrapeSkills(heroes[heroName])
-            })
+            scrapeTalents()
         }
     })
 }
@@ -85,8 +81,9 @@ function scrapeSkills(heroObj) {
         }
     
     }).then(res => {
+        heroName = hero.name.toLowerCase()
         // Clean Up
-        heroes[hero.name].skills = res.skills.map((skill) => {
+        heroes[heroName].skills = res.skills.map((skill) => {
             // Clean right attributes
             skill.rightAttribute = skill.rightAttribute.split("\n")
 
@@ -130,9 +127,9 @@ function scrapeSkills(heroObj) {
             return skill
         })
 
-        heroes[hero.name].lore = res.lore
+        heroes[heroName].lore = res.lore
 
-        delete  heroes[hero.name].link
+        delete  heroes[heroName].link
 
         counter++
         
@@ -154,6 +151,8 @@ function scrapeSkills(heroObj) {
 }
 
 function scrapeTalents() {
+    console.log("fetching talents...")
+
     scrapeIt('http://wiki.teamliquid.net/dota2/List_of_all_talents', {
         heroOrder: {
             listItem: 'div #toc > ul > li',
@@ -165,7 +164,7 @@ function scrapeTalents() {
 
         // Clean up hero order
         res.heroOrder = res.heroOrder.map((name) => {
-            return name.substr(name.indexOf(' ') + 1)
+            return name.substr(name.indexOf(' ') + 1).toLowerCase()
         })
 
         // Clean up talents
@@ -177,18 +176,17 @@ function scrapeTalents() {
 
         for(let i = 0; i < res.heroOrder.length; i++) {
             let startTalent = i*8
-            let talent = [[res.talents[startTalent],res.talents[startTalent+1]],[res.talents[startTalent+2],res.talents[startTalent+3]],[res.talents[startTalent+4],res.talents[startTalent+5]],[res.talents[startTalent+6],res.talents[startTalent+7]]]
-            console.log(res.heroOrder[i])
-            console.log(talent)
+            heroes[res.heroOrder[i]].talents = [[res.talents[startTalent+6],res.talents[startTalent+7]],[res.talents[startTalent+4],res.talents[startTalent+5]],[res.talents[startTalent+2],res.talents[startTalent+3]],[res.talents[startTalent],res.talents[startTalent+1]]]
         }
 
-        
+        console.log('fetching skills...')
 
-        
-
+        Object.keys(heroes).forEach((heroName) => {
+            scrapeSkills(heroes[heroName])
+        })
     })
 }
 
 // getHeroes()
 
-scrapeTalents()
+getHeroes()
