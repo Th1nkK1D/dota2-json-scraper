@@ -50,13 +50,13 @@ function getHeroes() {
             console.log("fetching each hero info...")
 
             Object.keys(heroes).forEach((heroName) => {
-                scrapeHero(heroes[heroName])
+                scrapeSkills(heroes[heroName])
             })
         }
     })
 }
 
-function scrapeHero(heroObj) {
+function scrapeSkills(heroObj) {
     let hero = heroObj
 
     scrapeIt(hero.link, {
@@ -153,4 +153,42 @@ function scrapeHero(heroObj) {
     })
 }
 
-getHeroes()
+function scrapeTalents() {
+    scrapeIt('http://wiki.teamliquid.net/dota2/List_of_all_talents', {
+        heroOrder: {
+            listItem: 'div #toc > ul > li',
+        },
+        talents: {
+            listItem: 'table > tr > td',
+        }
+    }).then(res => {
+
+        // Clean up hero order
+        res.heroOrder = res.heroOrder.map((name) => {
+            return name.substr(name.indexOf(' ') + 1)
+        })
+
+        // Clean up talents
+        for(let i = res.talents.length-1; i >= 0; i--) {
+            if(i%13 === 0 || (i%13 - 2)%3 === 0) {
+                res.talents.splice(i,1)
+            }
+        }
+
+        for(let i = 0; i < res.heroOrder.length; i++) {
+            let startTalent = i*8
+            let talent = [[res.talents[startTalent],res.talents[startTalent+1]],[res.talents[startTalent+2],res.talents[startTalent+3]],[res.talents[startTalent+4],res.talents[startTalent+5]],[res.talents[startTalent+6],res.talents[startTalent+7]]]
+            console.log(res.heroOrder[i])
+            console.log(talent)
+        }
+
+        
+
+        
+
+    })
+}
+
+// getHeroes()
+
+scrapeTalents()
