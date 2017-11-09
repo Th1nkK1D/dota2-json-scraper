@@ -64,6 +64,9 @@ function scrapeSkills(heroObj) {
                 name: {
                     selector: '.abilityHeaderRowDescription > h2'
                 },
+                description: {
+                    selector: '.abilityHeaderRowDescription > p'
+                },
                 icon: {
                     selector: '.abilityIconHolder2 > img',
                     attr: 'src',
