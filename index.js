@@ -104,7 +104,7 @@ function scrapeSkills(heroObj) {
             skill.leftAttribute = skill.leftAttribute.split("_")
 
             // Merge attribute
-            let attributes = skill.cooldownmana.concat(skill.leftAttribute).concat(skill.rightAttribute)
+            let attributes = skill.leftAttribute.concat(skill.rightAttribute).concat(skill.cooldownmana)
 
             // Delete old attribute
             delete skill.rightAttribute
