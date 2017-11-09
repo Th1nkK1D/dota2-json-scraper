@@ -111,7 +111,7 @@ function scrapeSkills(heroObj) {
             delete skill.leftAttribute
             delete skill.cooldownmana
 
-            skill.attibutes = []
+            skill.attributes = []
 
             // Extract attribute
             attributes.forEach((attr) => {
@@ -120,7 +120,7 @@ function scrapeSkills(heroObj) {
                     value: attr.substr(attr.indexOf(': ') + 2)
                 }
                 if(attr.name.length > 0 && attr.value.length > 0){
-                    skill.attibutes.push(attr)
+                    skill.attributes.push(attr)
                 }
                 
             })
