@@ -17,10 +17,10 @@ function getHeroes() {
             console.log(error)
         } else {    
             response.forEach(function(hero) {                
-                 heroes[hero.localized_name.toLowerCase()] = {
+                 heroes[hero.localized_name.replace(' ','_').toLowerCase()] = {
                     'name': hero.localized_name,
                     'link': 'http://www.dota2.com/hero/' + hero.name.substr("npc_dota_hero_".length),
-                    'avatar': 'https://api.opendota.com/' + hero.img,
+                    'avatar': 'https://api.opendota.com' + hero.img,
                     'attribute': hero.primary_attr,
                     'roles': hero.roles,
                     'lore': '',
@@ -82,7 +82,7 @@ function scrapeSkills(heroObj) {
         }
     
     }).then(res => {
-        heroName = hero.name.toLowerCase()
+        heroName = hero.name.replace(' ','_').toLowerCase()
         // Clean Up
         heroes[heroName].skills = res.skills.map((skill) => {
             // Clean right attributes
@@ -165,7 +165,7 @@ function scrapeTalents() {
 
         // Clean up hero order
         res.heroOrder = res.heroOrder.map((name) => {
-            return name.substr(name.indexOf(' ') + 1).toLowerCase()
+            return name.substr(name.indexOf(' ') + 1).replace(' ','_').toLowerCase()
         })
 
         // Clean up talents
